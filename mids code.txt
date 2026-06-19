@@ -1,0 +1,387 @@
+package helloworld;
+import java.util.Scanner;
+import java.util.ArrayList;
+
+// Abstract base class (Abstraction)
+abstract class BankAccount {
+    protected double accountNumber;
+    protected String firstName;
+    protected String lastName;
+    protected String city;
+    protected double balance;
+    protected int pin;
+    protected boolean isCardBlocked;
+    protected ArrayList<String> transactionHistory;
+    protected ArrayList<String> personalizedAlerts;
+
+    // Constructor
+    public BankAccount(double accountNumber, String firstName, String lastName, String city, double initialBalance, int pin) {
+        this.accountNumber = accountNumber;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.city = city;
+        this.balance = initialBalance;
+        this.pin = pin;
+        this.isCardBlocked = false;
+        this.transactionHistory = new ArrayList<>();
+        this.personalizedAlerts = new ArrayList<>();
+    }
+
+    // Abstract methods (Abstraction)
+    public abstract void withdraw(double amount);
+    public abstract void deposit(double amount);
+
+    // Concrete methods
+    public double getAccountNumber() {
+        return accountNumber;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public int getPin() {
+        return pin;
+    }
+
+    public ArrayList<String> getTransactionHistory() {
+        return transactionHistory;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public boolean isCardBlocked() {
+        return isCardBlocked;
+    }
+
+    public ArrayList<String> getPersonalizedAlerts() {
+        return personalizedAlerts;
+    }
+
+    public void addAlert(String alert) {
+        personalizedAlerts.add(alert);
+    }
+
+    public boolean askToContinue(Scanner scanner) {
+        System.out.print("Do you want to continue? (yes/no): ");
+        String response = scanner.next();
+        return response.equalsIgnoreCase("yes");
+    }
+}
+
+// OnlineATMSystem inherits BankAccount (Inheritance)
+public class OnlineATMSystem extends BankAccount {
+
+    // Constructor
+    public OnlineATMSystem(double accountNumber, String firstName, String lastName, String city, double initialBalance, int pin) {
+        super(accountNumber, firstName, lastName, city, initialBalance, pin);
+    }
+
+    // Withdraw method
+    @Override
+    public void withdraw(double amount) {
+        if (isCardBlocked) {
+            System.out.println("Transaction declined. Your card is blocked.");
+            return;
+        }
+
+        if (amount <= balance) {
+            balance -= amount;
+            transactionHistory.add("Withdraw: Rs" + amount);
+            System.out.println("Please collect your cash: Rs" + amount);
+            System.out.println("Remaining balance: Rs" + balance);
+        } else {
+            System.out.println("Insufficient balance.");
+        }
+    }
+
+    // Deposit method
+    @Override
+    public void deposit(double amount) {
+        balance += amount;
+        transactionHistory.add("Deposit: Rs" + amount);
+        System.out.println("Amount Deposited: Rs" + amount);
+        System.out.println("Updated balance: Rs" + balance);
+    }
+
+    // Transfer method
+    public void transfer(OnlineATMSystem recipient, double amount) {
+        if (isCardBlocked) {
+            System.out.println("Transaction declined. Your card is blocked.");
+            return;
+        }
+
+        if (amount <= balance) {
+            balance -= amount;
+            recipient.deposit(amount);
+            transactionHistory.add("Transfer: Rs" + amount + " to Account " + recipient.getAccountNumber());
+            System.out.println("Amount Transferred: Rs" + amount);
+            System.out.println("Remaining balance: Rs" + balance);
+        } else {
+            System.out.println("Insufficient balance.");
+        }
+    }
+
+    // Change PIN method
+    public void changePin(int newPin) {
+        this.pin = newPin;
+        System.out.println("PIN successfully changed.");
+    }
+
+    // Block Card method
+    public void blockCard(String reason) {
+        isCardBlocked = true;
+        System.out.println("Your card has been temporarily blocked. Reason: " + reason);
+    }
+
+    // Unblock Card method
+    public void unblockCard(String name, double accNum, int pin) {
+        if (pin == this.pin) {
+            isCardBlocked = false;
+            System.out.println("Your card has been unblocked.");
+        } else {
+            System.out.println("Invalid PIN. Unable to unblock the card.");
+        }
+    }
+
+    // Loan management feature
+    public void applyForLoan(double loanAmount) {
+        System.out.println("Reminder: You need to pay off the loan in time.");
+        System.out.println("How do you plan to repay the loan?");
+        System.out.println("1: Within 15 days");
+        System.out.println("2: Within 1 month");
+        System.out.println("3: Within 1 year");
+        Scanner scanner = new Scanner(System.in);
+        int choice = scanner.nextInt();
+
+        switch (choice) {
+            case 1:
+                System.out.println("You have chosen to repay the loan within 15 days.");
+                break;
+            case 2:
+                System.out.println("You have chosen to repay the loan within 1 month.");
+                break;
+            case 3:
+                System.out.println("You have chosen to repay the loan within 1 year.");
+                break;
+            default:
+                System.out.println("Invalid choice.");
+        }
+
+        System.out.println("Loan application received for amount: Rs" + loanAmount);
+        addAlert("Loan application submitted for Rs" + loanAmount);
+    }
+
+    // Main method
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        OnlineATMSystem[] accounts = new OnlineATMSystem[100];
+        ArrayList<Integer> usedPins = new ArrayList<>();
+        int accountCount = 0;
+
+        while (true) {
+            System.out.println("\nWELCOME TO THE ONLINE ATM SYSTEM");
+            System.out.println("1: Create a new account");
+            System.out.println("2: ATM operations");
+            System.out.println("0: Exit");
+            System.out.print("Please select an option (1-2, 0 to exit): ");
+            int a = scanner.nextInt();
+
+            switch (a) {
+                case 1:
+                    System.out.println("Account creation");
+                    System.out.print("Enter first name: ");
+                    String firstName = scanner.next();
+                    System.out.print("Enter last name: ");
+                    String lastName = scanner.next();
+                    System.out.print("Enter city: ");
+                    String city = scanner.next();
+                    System.out.print("Enter age: ");
+                    int age = scanner.nextInt();
+
+                    if (age < 18) {
+                        System.out.println("You must be at least 18 to create an account.");
+                        break;
+                    }
+
+                    System.out.print("Enter initial balance: ");
+                    double initialBalance = scanner.nextDouble();
+                    int pin;
+
+                    while (true) {
+                        System.out.print("Enter a unique 4-digit pin: ");
+                        pin = scanner.nextInt();
+                        if (!usedPins.contains(pin)) {
+                            usedPins.add(pin);
+                            break;
+                        } else {
+                            System.out.println("This PIN is already taken.");
+                        }
+                    }
+
+                    double accountNumber = Math.random() * 1000000000;
+                    accounts[accountCount++] = new OnlineATMSystem(accountNumber, firstName, lastName, city, initialBalance, pin);
+                    System.out.println("Account created. Account Number: " + accountNumber);
+                    break;
+
+                case 2:
+                    System.out.print("Enter account number: ");
+                    accountNumber = scanner.nextDouble();
+                    OnlineATMSystem currentAccount = null;
+
+                    for (int i = 0; i < accountCount; i++) {
+                        if (accounts[i].getAccountNumber() == accountNumber) {
+                            currentAccount = accounts[i];
+                            break;
+                        }
+                    }
+
+                    if (currentAccount != null) {
+                        System.out.print("Enter PIN: ");
+                        pin = scanner.nextInt();
+
+                        if (pin == currentAccount.getPin()) {
+                            while (true) {
+                                System.out.println("\nSelect an Option:");
+                                System.out.println("1: Withdraw");
+                                System.out.println("2: Transfer");
+                                System.out.println("3: Deposit");
+                                System.out.println("4: Check Balance");
+                                System.out.println("5: Change PIN");
+                                System.out.println("6: View Transaction History");
+                                System.out.println("7: Block Card");
+                                System.out.println("8: Unblock Card");
+                                System.out.println("9: Apply for Loan");
+                                System.out.println("0: Exit to Main Menu");
+                                int b = scanner.nextInt();
+
+                                switch (b) {
+                                    case 1:
+                                        System.out.print("Enter Amount: ");
+                                        double amountWithdraw = scanner.nextDouble();
+                                        currentAccount.withdraw(amountWithdraw);
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 2:
+                                        System.out.print("Enter Recipient's Account Number: ");
+                                        double recipientAccountNumber = scanner.nextDouble();
+                                        OnlineATMSystem recipient = null;
+
+                                        for (int i = 0; i < accountCount; i++) {
+                                            if (accounts[i].getAccountNumber() == recipientAccountNumber) {
+                                                recipient = accounts[i];
+                                                break;
+                                            }
+                                        }
+
+                                        if (recipient != null) {
+                                            System.out.print("Enter Amount: ");
+                                            double amountTransfer = scanner.nextDouble();
+                                            currentAccount.transfer(recipient, amountTransfer);
+                                            if (!currentAccount.askToContinue(scanner)) {
+                                                break;
+                                            }
+                                            continue;
+                                        } else {
+                                            System.out.println("Recipient account not found.");
+                                        }
+                                        break;
+
+                                    case 3:
+                                        System.out.print("Enter Amount to Deposit: ");
+                                        double amountDeposit = scanner.nextDouble();
+                                        currentAccount.deposit(amountDeposit);
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 4:
+                                        System.out.println("Current Balance: Rs" + currentAccount.getBalance());
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 5:
+                                        System.out.print("Enter New PIN: ");
+                                        int newPin = scanner.nextInt();
+                                        currentAccount.changePin(newPin);
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 6:
+                                        System.out.println("Transaction History:");
+                                        for (String transaction : currentAccount.getTransactionHistory()) {
+                                            System.out.println(transaction);
+                                        }
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 7:
+                                        System.out.print("Enter reason for blocking: ");
+                                        String reason = scanner.next();
+                                        currentAccount.blockCard(reason);
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 8:
+                                        System.out.print("Enter your name: ");
+                                        String name = scanner.next();
+                                        System.out.print("Enter your account number: ");
+                                        double accNum = scanner.nextDouble();
+                                        System.out.print("Enter your PIN: ");
+                                        int unblockPin = scanner.nextInt();
+                                        currentAccount.unblockCard(name, accNum, unblockPin);
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 9:
+                                        System.out.print("Enter loan amount: ");
+                                        double loanAmount = scanner.nextDouble();
+                                        currentAccount.applyForLoan(loanAmount);
+                                        if (!currentAccount.askToContinue(scanner)) {
+                                            break;
+                                        }
+                                        continue;
+
+                                    case 0:
+                                        System.out.println("Exiting to Main Menu...");
+                                        break;
+
+                                    default:
+                                        System.out.println("Invalid option. Please try again.");
+                                }
+                                break; // Exit the transaction loop to return to the main menu
+                            }
+                        } else {
+                            System.out.println("Incorrect PIN.");
+                        }
+                    } else {
+                        System.out.println("Account not found.");
+                    }
+                    break;
+
+                case 0:
+                    System.out.println("Thank you for using the ATM. Goodbye!");
+                    System.exit(0);
+
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+}
